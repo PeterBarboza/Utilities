@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style>
+    #layer_botao_gatilho {
+      user-select: none
+    }
+  </style>
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+</body>
+
+<script>
+  var pedro_teste9263924 = false
+  setInterval(() => {
+    if (pedro_teste9263924) return
+
+    const buttonLayer = document.getElementById('layer_botao_gatilho')
+
+    if (!buttonLayer) return
+    pedro_teste9263924 = true
+
+    buttonLayer.addEventListener('click', printScreen1293713987)
+    createWhatsAppLinkElement10293823984236()
+
+    console.log('Evento registrado!')
+  }, 1000)
+
+  async function printScreen1293713987(params) {
+    const target = document.querySelector("#__next")
+    const canvas = await html2canvas(target)
+
+    const base64image = canvas.toDataURL("image/png");
+    const base64Data = base64image.split(',')[1]
+    const imageBuffer = base64ToArrayBuffer2304982498346(base64Data)
+
+    const parsedCurrentDatetime = new Date().toISOString().replace(/[.: ]+/g, '-')
+
+    const filename = `relatorio-dedesempenho-hoteleiro-${parsedCurrentDatetime}.png`
+
+    fileDownload23049823497(imageBuffer, filename, 'image/png')
+  }
+
+  function fileDownload23049823497(data, filename, mime, bom) {
+    const blobData = (typeof bom !== 'undefined') ? [bom, data] : [data]
+    const blob = new Blob(blobData, { type: mime || 'application/octet-stream' });
+    if (typeof window.navigator.msSaveBlob !== 'undefined') {
+      // IE workaround for "HTML7007: One or more blob URLs were
+      // revoked by closing the blob for which they were created.
+      // These URLs will no longer resolve as the data backing
+      // the URL has been freed."
+      window.navigator.msSaveBlob(blob, filename);
+    }
+    else {
+      const blobURL = (window.URL && window.URL.createObjectURL) ? window.URL.createObjectURL(blob) : window.webkitURL.createObjectURL(blob);
+      const tempLink = document.createElement('a');
+      tempLink.style.display = 'none';
+      tempLink.href = blobURL;
+      tempLink.setAttribute('download', filename);
+
+      // Safari thinks _blank anchor are pop ups. We only want to set _blank
+      // target if the browser does not support the HTML5 download attribute.
+      // This allows you to download files in desktop safari if pop up blocking
+      // is enabled.
+      if (typeof tempLink.download === 'undefined') {
+        tempLink.setAttribute('target', '_blank');
+      }
+
+      document.body.appendChild(tempLink);
+      tempLink.click();
+
+      // Fixes "webkit blob resource error 1"
+      setTimeout(function () {
+        document.body.removeChild(tempLink);
+        window.URL.revokeObjectURL(blobURL);
+      }, 200)
+    }
+  }
+
+  function base64ToArrayBuffer2304982498346(base64) {
+    // Decodificar a string Base64 em uma string binária
+    const binaryString = atob(base64);
+
+    // Criar um ArrayBuffer com o tamanho da string binária
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+
+    // Preencher o ArrayBuffer com os dados da string binária
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    return bytes.buffer; // Retorna como ArrayBuffer
+  }
+
+  function createWhatsAppLinkElement10293823984236() {
+    const idDoBotaoInLead = "KDdwXX"
+    const linkWhatsapp = "https://chat.whatsapp.com/DoPWreo9VDo6piqvy9RHh8"
+
+    const botaoInLead = document.getElementById(idDoBotaoInLead)
+    const divPaiBotao = botaoInLead.parentElement
+
+    botaoInLead.style.display = 'none'
+
+    const elementoLink = document.createElement('a')
+
+    elementoLink.innerText = 'Acessar comunidade'
+    elementoLink.href = linkWhatsapp
+    elementoLink.target = "_blank"
+    elementoLink.id = "elemento_link_comunidade_osh"
+    elementoLink.className = "btn relative rounded-lg btn-theme text-center flex justify-center items-center"
+
+    divPaiBotao.appendChild(elementoLink)
+  }
+</script>
+
+</html>
