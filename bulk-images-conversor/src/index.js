@@ -13,26 +13,42 @@ const path = require('node:path')
 const process = require('node:process')
 const crypto = require('node:crypto')
 const childProcess = require('node:child_process');
-// const configJson = require('./config.json');
+const configJson = require('./config.json');
 
-const TARGET_ARG = '--target'
-const FROM_ARG = '--from'
-const TO_ARG = '--to'
+function handleConfig() {
+  let VALID_FILE_EXTENSIONS = []
+  let VALID_FILE_EXTENSIONS_MAPPING = {}
 
-const VALID_ARGS = [TARGET_ARG, FROM_ARG, TO_ARG]
+  for (const extension of configJson.validFileExtensions) {
+    const parsedExtension = `.${extension}`
 
-const VALID_FILE_EXTENSIONS = ['.jpeg', '.jpg', '.png', '.HEIC', '.gif', '.webp', '.bmp', '.svg', '.tiff']
-const VALID_FILE_EXTENSIONS_MAPPING = {
-  jpeg: '.jpeg',
-  jpg: '.jpg',
-  png: '.png',
-  HEIC: '.HEIC',
-  gif: '.gif',
-  webp: '.webp',
-  bmp: '.bmp',
-  svg: '.svg',
-  tiff: '.tiff',
+    VALID_FILE_EXTENSIONS.push(parsedExtension)
+    VALID_FILE_EXTENSIONS_MAPPING[extension] = parsedExtension
+  }
+
+  const TARGET_ARG = '--target'
+  const FROM_ARG = '--from'
+  const TO_ARG = '--to'
+
+  const VALID_ARGS = [TARGET_ARG, FROM_ARG, TO_ARG]
+
+  return {
+    VALID_FILE_EXTENSIONS,
+    VALID_FILE_EXTENSIONS_MAPPING,
+    TARGET_ARG,
+    FROM_ARG,
+    TO_ARG,
+    VALID_ARGS,
+  }
 }
+const {
+  VALID_ARGS,
+  FROM_ARG,
+  TO_ARG,
+  TARGET_ARG,
+  VALID_FILE_EXTENSIONS,
+  VALID_FILE_EXTENSIONS_MAPPING,
+} = handleConfig()
 // const CONFIG_JSON = configJson
 
 /**
@@ -95,6 +111,10 @@ async function validateAndParseArgs() {
     ...args
   ] = process.argv
 
+  console.log(args)
+
+  // process.exit(0)
+
   let target = ''
   let from = []
   let to = ''
@@ -103,47 +123,54 @@ async function validateAndParseArgs() {
     const isValid = !!VALID_ARGS.find((el) => arg.startsWith(el))
 
     if (!isValid) {
-      console.log('\nERRO --- PARÂMETRO INVÁLIDO RECEBIDO\n')
+      console.log('\nERRO --- PARAMETRO INVALIDO RECEBIDO\n')
       process.exit(1)
     }
 
     const [key, value] = arg.split('=')
 
-    if (!value) {
-      console.log('\nERRO --- TODOS OS PARÂMETROS DEVEM RECEBER UM VALOR\n')
-      process.exit(1)
-    }
-
     if (key === TARGET_ARG) {
-      const targetExists = await verifyIfTargetExists(value)
+      let parsedValue = value
+      if (
+        (value[0] === "\"" || value[0] === "'") &&
+        (value[value.length - 1] === "\"" || value[value.length - 1] === "'")
+      ) {
+        parsedValue = value.slice(1, value.length - 1)
+      }
+
+      const targetExists = await verifyIfTargetExists(parsedValue)
 
       if (!targetExists) {
-        console.log('\nERRO --- O DIRETÓRIO ALVO NÃO FOI ENCONTRADO\n')
+        console.log('\nERRO --- O DIRETORIO ALVO NAO FOI ENCONTRADO\n')
         process.exit(1)
       }
-      target = value
+      target = parsedValue
     }
 
     if (key === FROM_ARG) {
       const fromValues = value.split(',')
 
-      const hasInvalidFromValue = fromValues.find((fromValue) => {
-        return !VALID_FILE_EXTENSIONS.includes(VALID_FILE_EXTENSIONS_MAPPING[fromValue])
-      })
+      if (!value) {
+        from = VALID_FILE_EXTENSIONS
+      } else {
+        const hasInvalidFromValue = fromValues.find((fromValue) => {
+          return !VALID_FILE_EXTENSIONS.includes(VALID_FILE_EXTENSIONS_MAPPING[fromValue])
+        })
 
-      if (hasInvalidFromValue) {
-        console.log('\nERRO --- O PARÂMETRO "--from" ESTÁ INVÁLIDO\n')
-        process.exit(1)
+        if (hasInvalidFromValue) {
+          console.log('\nERRO --- O PARAMETRO "--from" ESTA INVALIDO\n')
+          process.exit(1)
+        }
+
+        from = value.split(',')
       }
-
-      from = value.split(',')
     }
 
     if (key === TO_ARG) {
       const isValid = VALID_FILE_EXTENSIONS.includes(VALID_FILE_EXTENSIONS_MAPPING[value])
 
       if (!isValid) {
-        console.log('\nERRO --- O PARÂMETRO "--to" ESTÁ INVÁLIDO\n')
+        console.log('\nERRO --- O PARAMETRO "--to" ESTA INVALIDO\n')
         process.exit(1)
       }
 
@@ -151,8 +178,8 @@ async function validateAndParseArgs() {
     }
   }
 
-  if (!target || !from || !to) {
-    console.log('\nERRO --- TODOS OS PARÂMETROS SÃO OBRIGATÓRIOS\n')
+  if (!target || !from.length || !to) {
+    console.log('\nERRO --- TODOS OS PARAMETROS SAO OBRIGATORIOS\n')
     process.exit(1)
   }
 
@@ -195,6 +222,16 @@ async function main() {
   }
 
   const filepaths = await listarArquivos(parsedTargetDir, from)
+
+  if (!filepaths.length) {
+    console.log(
+      `Nenhum arquivo ${from.length > 1 ? "do" : "dos"
+      } ${from.length > 1 ? "tipo" : "tipos"
+      } ${from.length > 1 ? "do" : "dos"
+      } ${from.join(',')} foram encontrados no diretorio ${target}.`
+    )
+    process.exit(0)
+  }
 
   const commandPaths = []
 

@@ -1,0 +1,4 @@
+{
+  "maxThreads": 1,
+  "validFileExtensions": ["jpeg", "jpg", "png", "HEIC", "heic", "gif", "webp", "bmp", "svg", "tiff"]
+}
